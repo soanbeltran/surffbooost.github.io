@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SURFBOOTS - Pro</title>
+    <title>SURFBOOTS - Cloud Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -20,6 +20,7 @@
             background-color: var(--bg-dark);
             color: white;
             touch-action: manipulation;
+            -webkit-font-smoothing: antialiased;
         }
 
         .neo-card {
@@ -32,23 +33,22 @@
         }
 
         .page-section { display: none; }
-        .page-section.active { display: block; animation: fadeIn 0.3s ease-in; }
+        .page-section.active { display: block; animation: fadeIn 0.3s ease-out; }
 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Barre de navigation mobile style App */
         .mobile-nav {
             background: rgba(18, 18, 20, 0.95);
-            backdrop-filter: blur(10px);
-            border-top: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(15px);
+            border-top: 1px solid rgba(255,255,255,0.08);
         }
 
         .nav-item {
             color: #6b7280;
-            transition: all 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .nav-item.active {
@@ -56,91 +56,112 @@
         }
 
         .nav-item.active i {
-            transform: translateY(-5px);
+            transform: translateY(-4px);
         }
 
-        /* Pour empêcher le scroll horizontal */
         html, body {
             max-width: 100%;
             overflow-x: hidden;
+            height: 100%;
         }
         
-        /* Boutons cliquables */
         button {
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
+            transition: transform 0.1s active;
         }
+
+        button:active { transform: scale(0.96); }
+
+        /* Scrollbar personnalisée pour le chat */
+        #chat-box::-webkit-scrollbar { width: 4px; }
+        #chat-box::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
     </style>
 </head>
 <body class="pb-24">
 
     <!-- HEADER -->
-    <header class="p-6 flex justify-between items-center border-b border-white/5 bg-[#0a0a0b]">
+    <header class="p-6 flex justify-between items-center border-b border-white/5 bg-[#0a0a0b] sticky top-0 z-40">
         <div class="flex items-center gap-3">
             <div class="w-10 h-10 bg-orange-600 rounded-xl flex items-center justify-center shadow-lg">
                 <i class="fas fa-bolt text-white"></i>
             </div>
             <span class="text-xl font-black italic uppercase tracking-tighter">SurfBoots</span>
         </div>
-        <div id="cloud-status" class="text-[10px] font-bold text-green-500 uppercase flex items-center gap-2 bg-green-500/10 px-3 py-1 rounded-full border border-green-500/20">
-            <div class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div> Cloud OK
+        <div id="status-indicator" class="text-[10px] font-bold text-gray-500 uppercase flex items-center gap-2 bg-white/5 px-3 py-1 rounded-full border border-white/10">
+            <div id="status-dot" class="w-1.5 h-1.5 bg-gray-500 rounded-full"></div> <span id="status-text">Hors-ligne</span>
         </div>
     </header>
 
-    <main class="p-6 max-w-lg mx-auto">
+    <main class="p-6 max-w-lg mx-auto min-h-screen">
         
         <!-- SECTION: ACCUEIL -->
         <section id="page-home" class="page-section active space-y-8 pt-8 text-center">
-            <h1 class="text-6xl font-black italic uppercase leading-none">
-                Deviens <br><span class="text-orange-600">Légende.</span>
-            </h1>
-            <p class="text-gray-400 font-medium">L'outil ultime pour Subway Surfers.</p>
+            <div class="space-y-2">
+                <h1 class="text-6xl font-black italic uppercase leading-none tracking-tighter">
+                    Deviens <br><span class="text-orange-600">Légende.</span>
+                </h1>
+                <p class="text-gray-400 font-medium text-sm">Synchronisation Cloud Subway Surfers.</p>
+            </div>
             
             <div class="grid gap-4 pt-4">
-                <button onclick="window.navigateTo('dashboard')" class="w-full h-20 bg-orange-600 rounded-2xl font-black uppercase italic text-xl orange-glow flex items-center justify-center gap-4">
+                <button data-target="dashboard" class="nav-btn w-full h-20 bg-orange-600 rounded-2xl font-black uppercase italic text-xl orange-glow flex items-center justify-center gap-4">
                     <i class="fas fa-chart-line"></i> Dashboard
                 </button>
-                <button onclick="window.navigateTo('coach')" class="w-full h-20 bg-white/5 border border-white/10 rounded-2xl font-black uppercase italic text-xl flex items-center justify-center gap-4">
+                <button data-target="coach" class="nav-btn w-full h-20 bg-white/5 border border-white/10 rounded-2xl font-black uppercase italic text-xl flex items-center justify-center gap-4">
                     <i class="fas fa-robot"></i> Coach IA
                 </button>
-                <button onclick="window.navigateTo('profile')" class="w-full h-20 bg-white/5 border border-white/10 rounded-2xl font-black uppercase italic text-xl flex items-center justify-center gap-4">
-                    <i class="fas fa-user"></i> Mon Profil
+                <button data-target="profile" class="nav-btn w-full h-20 bg-white/5 border border-white/10 rounded-2xl font-black uppercase italic text-xl flex items-center justify-center gap-4">
+                    <i class="fas fa-user"></i> Profil Cloud
                 </button>
             </div>
         </section>
 
         <!-- SECTION: DASHBOARD -->
         <section id="page-dashboard" class="page-section space-y-6">
-            <div class="neo-card p-6 rounded-[2rem] text-center">
-                <div class="text-[10px] font-black uppercase text-gray-500 mb-1">Record Personnel</div>
-                <div id="best-score" class="text-5xl font-black italic text-orange-500">0</div>
+            <div class="neo-card p-8 rounded-[2rem] text-center relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 to-yellow-500"></div>
+                <div class="text-[10px] font-black uppercase text-gray-500 mb-1 tracking-widest">Meilleur Score Global</div>
+                <div id="best-score" class="text-5xl font-black italic text-white">0</div>
             </div>
 
             <div class="neo-card p-8 rounded-[2rem] space-y-6">
-                <h3 class="font-black italic uppercase text-center border-b border-white/5 pb-4">Ajouter une Session</h3>
+                <h3 class="font-black italic uppercase text-center text-sm text-gray-400 tracking-widest">Nouvelle Run</h3>
                 <div class="space-y-4">
-                    <input type="number" id="input-score" placeholder="Score final" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 font-bold text-center text-xl outline-none focus:border-orange-500 text-white">
-                    <input type="number" id="input-coins" placeholder="Pièces collectées" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 font-bold text-center text-xl outline-none focus:border-yellow-500 text-white">
-                    <button id="save-btn" class="w-full py-5 bg-orange-600 rounded-xl font-black uppercase italic text-lg shadow-lg">Sauvegarder</button>
+                    <div class="relative">
+                        <i class="fas fa-trophy absolute left-4 top-1/2 -translate-y-1/2 text-orange-500"></i>
+                        <input type="number" id="input-score" placeholder="Score final" class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 pl-12 font-bold text-lg outline-none focus:border-orange-500 transition-all text-white">
+                    </div>
+                    <div class="relative">
+                        <i class="fas fa-coins absolute left-4 top-1/2 -translate-y-1/2 text-yellow-500"></i>
+                        <input type="number" id="input-coins" placeholder="Pièces" class="w-full bg-white/5 border border-white/10 rounded-2xl p-5 pl-12 font-bold text-lg outline-none focus:border-yellow-500 transition-all text-white">
+                    </div>
+                    <button id="save-btn" class="w-full py-5 bg-white text-black rounded-2xl font-black uppercase italic text-lg shadow-xl flex items-center justify-center gap-3">
+                        <i class="fas fa-cloud-upload-alt"></i> Synchroniser
+                    </button>
                 </div>
             </div>
 
-            <div id="sessions-list" class="space-y-3 pb-10">
-                <!-- Les sessions apparaîtront ici -->
+            <div class="space-y-4">
+                <h4 class="text-[10px] font-black uppercase text-gray-500 px-2 tracking-widest">Dernières Activités</h4>
+                <div id="sessions-list" class="space-y-3 pb-10">
+                    <!-- Sessions injectées ici -->
+                </div>
             </div>
         </section>
 
         <!-- SECTION: COACH IA -->
         <section id="page-coach" class="page-section">
-            <div class="neo-card h-[60vh] rounded-[2rem] flex flex-col overflow-hidden">
+            <div class="neo-card h-[65vh] rounded-[2.5rem] flex flex-col overflow-hidden">
                 <div id="chat-box" class="flex-1 p-6 overflow-y-auto space-y-4">
-                    <div class="bg-white/5 p-4 rounded-2xl text-sm border border-white/10">
-                        <b>SurfGPT:</b> Salut ! Prêt à exploser ton record ? Demande-moi n'importe quoi !
+                    <div class="bg-white/5 p-4 rounded-2xl text-sm border border-white/10 max-w-[85%]">
+                        <b class="text-orange-500 block mb-1">SurfGPT</b>
+                        Salut ! Je suis ton coach personnel. Prêt à briser ton record ? Pose-moi tes questions sur Subway Surfers !
                     </div>
                 </div>
-                <div class="p-4 bg-black/50 border-t border-white/5 flex gap-2">
-                    <input type="text" id="chat-input" placeholder="Ton message..." class="flex-1 bg-white/5 border border-white/10 rounded-xl p-3 text-sm outline-none text-white">
-                    <button id="send-ai-btn" class="w-12 h-12 bg-orange-600 rounded-xl flex items-center justify-center shadow-lg">
+                <div class="p-4 bg-white/5 border-t border-white/5 flex gap-2">
+                    <input type="text" id="chat-input" placeholder="Demande un conseil..." class="flex-1 bg-white/5 border border-white/10 rounded-xl p-4 text-sm outline-none text-white focus:border-orange-500">
+                    <button id="send-ai-btn" class="w-14 h-14 bg-orange-600 rounded-xl flex items-center justify-center shadow-lg text-xl">
                         <i class="fas fa-paper-plane"></i>
                     </button>
                 </div>
@@ -150,190 +171,242 @@
         <!-- SECTION: PROFIL -->
         <section id="page-profile" class="page-section space-y-6">
             <div class="neo-card p-10 rounded-[2.5rem] text-center space-y-6">
-                <div class="w-24 h-24 bg-orange-600 rounded-full mx-auto flex items-center justify-center text-4xl shadow-2xl">
-                    <i class="fas fa-user-astronaut"></i>
+                <div class="relative w-28 h-28 mx-auto">
+                    <div class="absolute inset-0 bg-orange-600 rounded-full blur-2xl opacity-20 animate-pulse"></div>
+                    <div class="relative w-full h-full bg-gradient-to-br from-orange-500 to-yellow-500 rounded-full flex items-center justify-center text-4xl shadow-2xl border-4 border-[#0a0a0b]">
+                        <i class="fas fa-user-ninja"></i>
+                    </div>
                 </div>
                 <div>
                     <h2 class="text-2xl font-black italic uppercase text-white">Surfeur Pro</h2>
-                    <div id="lvl-badge" class="mt-2 bg-orange-500/20 text-orange-500 px-4 py-1 rounded-full text-xs font-bold inline-block">LVL 1</div>
+                    <div id="lvl-badge" class="mt-2 bg-orange-500/10 text-orange-500 px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest border border-orange-500/20">LVL 1</div>
                 </div>
-                <div class="w-full h-3 bg-white/5 rounded-full overflow-hidden border border-white/5">
-                    <div id="xp-bar" class="h-full bg-orange-600 w-[10%] transition-all duration-500"></div>
+                <div class="space-y-2">
+                    <div class="flex justify-between text-[10px] font-black uppercase text-gray-500 px-1">
+                        <span>Progression</span>
+                        <span id="xp-text">0 / 100 XP</span>
+                    </div>
+                    <div class="w-full h-3 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                        <div id="xp-bar" class="h-full bg-gradient-to-r from-orange-600 to-yellow-500 w-[0%] transition-all duration-1000"></div>
+                    </div>
                 </div>
-                <p id="xp-text" class="text-[10px] font-black uppercase text-gray-500">10 / 100 XP</p>
+                <div class="pt-4 grid grid-cols-2 gap-4">
+                    <div class="bg-white/5 p-4 rounded-2xl border border-white/5">
+                        <div class="text-[9px] uppercase font-black text-gray-500">ID Cloud</div>
+                        <div id="user-id-display" class="text-[10px] font-mono text-white mt-1 truncate">Connexion...</div>
+                    </div>
+                    <div class="bg-white/5 p-4 rounded-2xl border border-white/5">
+                        <div class="text-[9px] uppercase font-black text-gray-500">Statut</div>
+                        <div class="text-[10px] font-black text-green-500 mt-1 uppercase">Vérifié</div>
+                    </div>
+                </div>
             </div>
         </section>
 
     </main>
 
-    <!-- NAVIGATION MOBILE (FIXÉE EN BAS) -->
-    <nav class="mobile-nav fixed bottom-0 left-0 w-full flex justify-around items-center h-20 z-50">
-        <button onclick="window.navigateTo('home')" class="nav-item active text-center flex flex-col items-center gap-1" id="btn-home">
+    <!-- NAVIGATION MOBILE -->
+    <nav class="mobile-nav fixed bottom-0 left-0 w-full flex justify-around items-center h-22 pb-4 z-50">
+        <button data-target="home" class="nav-btn nav-item active text-center flex flex-col items-center gap-1">
             <i class="fas fa-home text-xl"></i>
             <span class="text-[9px] font-black uppercase">Home</span>
         </button>
-        <button onclick="window.navigateTo('dashboard')" class="nav-item text-center flex flex-col items-center gap-1" id="btn-dashboard">
+        <button data-target="dashboard" class="nav-btn nav-item text-center flex flex-col items-center gap-1">
             <i class="fas fa-chart-bar text-xl"></i>
             <span class="text-[9px] font-black uppercase">Stats</span>
         </button>
-        <button onclick="window.navigateTo('coach')" class="nav-item text-center flex flex-col items-center gap-1" id="btn-coach">
+        <button data-target="coach" class="nav-btn nav-item text-center flex flex-col items-center gap-1">
             <i class="fas fa-robot text-xl"></i>
             <span class="text-[9px] font-black uppercase">Coach</span>
         </button>
-        <button onclick="window.navigateTo('profile')" class="nav-item text-center flex flex-col items-center gap-1" id="btn-profile">
-            <i class="fas fa-user text-xl"></i>
+        <button data-target="profile" class="nav-btn nav-item text-center flex flex-col items-center gap-1">
+            <i class="fas fa-user-circle text-xl"></i>
             <span class="text-[9px] font-black uppercase">Moi</span>
         </button>
     </nav>
 
+    <!-- FIREBASE & LOGIQUE APP -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, limit } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
-        // CONFIG
+        // Initialisation Firebase
         const firebaseConfig = JSON.parse(window.__firebase_config || '{}');
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = window.__app_id || 'surfboots-app';
-        const apiKey = ""; // La clé est injectée par l'environnement
+        const appId = window.__app_id || 'surfboots-github';
+        const apiKey = ""; // Géré par l'environnement
 
-        let user = null;
-        let sessions = [];
+        let currentUser = null;
+        let sessionsData = [];
 
-        // NAVIGATION GLOBALE
-        window.navigateTo = (page) => {
+        // NAVIGATION
+        const switchPage = (targetId) => {
             if (navigator.vibrate) navigator.vibrate(5);
-            document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+            
+            // UI
+            document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            const targetPage = document.getElementById('page-' + page);
-            const targetBtn = document.getElementById('btn-' + page);
+            
+            const targetPage = document.getElementById('page-' + targetId);
+            const targetBtns = document.querySelectorAll(`[data-target="${targetId}"]`);
+            
             if(targetPage) targetPage.classList.add('active');
-            if(targetBtn) targetBtn.classList.add('active');
+            targetBtns.forEach(b => b.classList.add('active'));
+            
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
-        // SAUVEGARDE DE SESSION
-        const addSession = async () => {
-            if(!user) return;
+        // GESTION DES CLICS NAVIGATION
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', () => switchPage(btn.getAttribute('data-target')));
+        });
+
+        // SAUVEGARDE RUN
+        const handleSave = async () => {
+            if(!currentUser) return;
             const sInput = document.getElementById('input-score');
             const cInput = document.getElementById('input-coins');
-            const s = parseInt(sInput.value);
-            const c = parseInt(cInput.value);
-            
-            if(isNaN(s) || isNaN(c)) return;
-            
+            const score = parseInt(sInput.value);
+            const coins = parseInt(cInput.value);
+
+            if(!score || isNaN(score)) return;
+
             try {
-                await addDoc(collection(db, 'artifacts', appId, 'users', user.uid, 'runs'), {
-                    score: s,
-                    coins: c,
+                const saveBtn = document.getElementById('save-btn');
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+                await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'runs'), {
+                    score,
+                    coins: coins || 0,
                     date: new Date().toISOString()
                 });
+
                 sInput.value = '';
                 cInput.value = '';
-                if (navigator.vibrate) navigator.vibrate(20);
-            } catch(e) { 
-                console.error("Save error:", e);
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="fas fa-check text-green-500"></i> Succès';
+                setTimeout(() => saveBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Synchroniser', 2000);
+                
+                if (navigator.vibrate) navigator.vibrate(30);
+            } catch(e) {
+                console.error("Erreur de sauvegarde:", e);
+                alert("Erreur Cloud. Réessaie.");
             }
         };
 
-        // CHAT AVEC L'IA
-        const askAI = async () => {
+        document.getElementById('save-btn').addEventListener('click', handleSave);
+
+        // CHAT IA
+        const handleChat = async () => {
             const input = document.getElementById('chat-input');
             const box = document.getElementById('chat-box');
-            if(!input.value.trim()) return;
+            const val = input.value.trim();
+            if(!val) return;
 
-            const msg = input.value;
-            box.innerHTML += `<div class="bg-orange-600/20 p-4 rounded-2xl text-sm border border-orange-500/20 text-right italic text-white"><b>Moi:</b> ${msg}</div>`;
+            // Message User
+            box.innerHTML += `
+                <div class="flex justify-end animate-in slide-in-from-right-2 duration-300">
+                    <div class="bg-orange-600 p-4 rounded-2xl text-sm border border-orange-500/20 max-w-[85%] text-white">
+                        ${val}
+                    </div>
+                </div>`;
             input.value = '';
             box.scrollTop = box.scrollHeight;
 
             try {
-                // Utilisation du modèle supporté gemini-2.5-flash-preview-09-2025
                 const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
-                        contents: [{parts: [{text: msg}]}],
-                        systemInstruction: {parts: [{text: "Tu es SurfGPT, coach Subway Surfers expert. Réponds de façon courte, fun et encourageante en français."}]}
+                        contents: [{parts: [{text: val}]}],
+                        systemInstruction: {parts: [{text: "Tu es SurfGPT, coach expert de Subway Surfers. Réponds en français de manière énergique, courte et donne des astuces de pro."}]}
                     })
                 });
                 const data = await res.json();
-                const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Mince, ma planche a glissé. Réessaie !";
-                box.innerHTML += `<div class="bg-white/5 p-4 rounded-2xl text-sm border border-white/10 text-white"><b>SurfGPT:</b> ${reply}</div>`;
+                const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Erreur de connexion avec le coach.";
+
+                box.innerHTML += `
+                    <div class="flex justify-start animate-in slide-in-from-left-2 duration-300">
+                        <div class="bg-white/5 p-4 rounded-2xl text-sm border border-white/10 max-w-[85%]">
+                            <b class="text-orange-500 block mb-1">SurfGPT</b>
+                            ${reply}
+                        </div>
+                    </div>`;
                 box.scrollTop = box.scrollHeight;
-            } catch(e) { 
-                console.error("AI error:", e);
-                box.innerHTML += `<div class="text-red-500 text-xs p-2 text-center">Erreur de connexion avec l'IA</div>`;
+            } catch(e) {
+                console.error("AI Error:", e);
             }
         };
 
-        // ATTACHEMENT DES ÉVÉNEMENTS (Plus fiable que onclick dans un module)
-        document.addEventListener('DOMContentLoaded', () => {
-            const saveBtn = document.getElementById('save-btn');
-            const aiBtn = document.getElementById('send-ai-btn');
-            const aiInput = document.getElementById('chat-input');
+        document.getElementById('send-ai-btn').addEventListener('click', handleChat);
+        document.getElementById('chat-input').addEventListener('keypress', (e) => { if(e.key === 'Enter') handleChat(); });
 
-            if(saveBtn) saveBtn.addEventListener('click', addSession);
-            if(aiBtn) aiBtn.addEventListener('click', askAI);
-            if(aiInput) {
-                aiInput.addEventListener('keypress', (e) => {
-                    if(e.key === 'Enter') askAI();
-                });
-            }
-        });
+        // MISE À JOUR DE L'UI
+        const refreshUI = () => {
+            if(!sessionsData.length) return;
 
-        // AUTH & SYNC
-        const startApp = async () => {
+            // Score & XP
+            const scores = sessionsData.map(s => s.score);
+            const max = Math.max(...scores);
+            document.getElementById('best-score').innerText = max.toLocaleString();
+
+            const totalXP = sessionsData.reduce((acc, s) => acc + (s.score/1000) + (s.coins/5), 0);
+            const level = Math.floor(Math.sqrt(totalXP / 20)) + 1;
+            const xpForNext = Math.pow(level, 2) * 20;
+            const progress = (totalXP / xpForNext) * 100;
+
+            document.getElementById('lvl-badge').innerText = `LVL ${level}`;
+            document.getElementById('xp-bar').style.width = `${Math.min(progress, 100)}%`;
+            document.getElementById('xp-text').innerText = `${Math.round(totalXP)} / ${xpForNext} XP`;
+
+            // Liste
+            const list = document.getElementById('sessions-list');
+            list.innerHTML = sessionsData.sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 10).map(s => `
+                <div class="neo-card p-4 rounded-2xl flex justify-between items-center animate-in fade-in duration-500">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-orange-500">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <div>
+                            <div class="font-black italic text-lg">${s.score.toLocaleString()}</div>
+                            <div class="text-[9px] uppercase font-bold text-gray-500">${new Date(s.date).toLocaleDateString()}</div>
+                        </div>
+                    </div>
+                    <div class="text-yellow-500 font-black text-sm"><i class="fas fa-coins text-xs mr-1"></i>${s.coins}</div>
+                </div>
+            `).join('');
+        };
+
+        // AUTHENTIFICATION & ÉCOUTEURS CLOUD
+        const init = async () => {
             try {
                 await signInAnonymously(auth);
-                onAuthStateChanged(auth, (u) => {
-                    if (u) {
-                        user = u;
-                        onSnapshot(collection(db, 'artifacts', appId, 'users', user.uid, 'runs'), (snap) => {
-                            sessions = snap.docs.map(d => d.data());
-                            updateUI();
-                        }, (err) => console.error("Firestore error:", err));
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        currentUser = user;
+                        document.getElementById('user-id-display').innerText = user.uid;
+                        document.getElementById('status-dot').className = "w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse";
+                        document.getElementById('status-text').innerText = "Connecté";
+                        document.getElementById('status-text').className = "text-green-500";
+
+                        // Écoute en temps réel des données
+                        const runsRef = collection(db, 'artifacts', appId, 'users', user.uid, 'runs');
+                        onSnapshot(runsRef, (snap) => {
+                            sessionsData = snap.docs.map(d => d.data());
+                            refreshUI();
+                        });
                     }
                 });
-            } catch(err) {
-                console.error("Auth error:", err);
+            } catch(e) {
+                console.error("Auth Fail:", e);
             }
         };
 
-        // UI UPDATES
-        function updateUI() {
-            const scores = sessions.map(s => s.score);
-            const max = scores.length ? Math.max(...scores) : 0;
-            const bestEl = document.getElementById('best-score');
-            if(bestEl) bestEl.innerText = max.toLocaleString();
-
-            const totalXP = sessions.reduce((acc, s) => acc + (s.score/1000) + (s.coins/10), 0);
-            const level = Math.floor(Math.sqrt(totalXP / 10)) + 1;
-            const xpNeeded = Math.pow(level, 2) * 10;
-            const progress = (totalXP / xpNeeded) * 100;
-
-            const badge = document.getElementById('lvl-badge');
-            const bar = document.getElementById('xp-bar');
-            const text = document.getElementById('xp-text');
-
-            if(badge) badge.innerText = `LVL ${level}`;
-            if(bar) bar.style.width = `${Math.min(progress, 100)}%`;
-            if(text) text.innerText = `${Math.round(totalXP)} / ${xpNeeded} XP`;
-
-            const list = document.getElementById('sessions-list');
-            if(list) {
-                list.innerHTML = sessions.sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 5).map(s => `
-                    <div class="bg-white/5 p-4 rounded-2xl flex justify-between items-center border border-white/5 animate-in fade-in duration-300">
-                        <span class="font-black italic text-lg text-white">${s.score.toLocaleString()}</span>
-                        <span class="text-yellow-500 font-bold"><i class="fas fa-coins text-xs"></i> ${s.coins}</span>
-                    </div>
-                `).join('');
-            }
-        }
-
-        startApp();
+        init();
     </script>
 </body>
 </html>
