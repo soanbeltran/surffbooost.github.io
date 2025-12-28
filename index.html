@@ -46,19 +46,29 @@
             border-top: 1px solid rgba(255,255,255,0.1);
         }
 
+        .nav-item {
+            color: #6b7280;
+            transition: all 0.2s;
+        }
+
         .nav-item.active {
             color: var(--accent);
         }
 
         .nav-item.active i {
             transform: translateY(-5px);
-            transition: transform 0.2s;
         }
 
         /* Pour empêcher le scroll horizontal */
         html, body {
             max-width: 100%;
             overflow-x: hidden;
+        }
+        
+        /* Boutons cliquables */
+        button {
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
         }
     </style>
 </head>
@@ -87,13 +97,13 @@
             <p class="text-gray-400 font-medium">L'outil ultime pour Subway Surfers.</p>
             
             <div class="grid gap-4 pt-4">
-                <button onclick="navigateTo('dashboard')" class="w-full h-20 bg-orange-600 rounded-2xl font-black uppercase italic text-xl orange-glow flex items-center justify-center gap-4">
+                <button onclick="window.navigateTo('dashboard')" class="w-full h-20 bg-orange-600 rounded-2xl font-black uppercase italic text-xl orange-glow flex items-center justify-center gap-4">
                     <i class="fas fa-chart-line"></i> Dashboard
                 </button>
-                <button onclick="navigateTo('coach')" class="w-full h-20 bg-white/5 border border-white/10 rounded-2xl font-black uppercase italic text-xl flex items-center justify-center gap-4">
+                <button onclick="window.navigateTo('coach')" class="w-full h-20 bg-white/5 border border-white/10 rounded-2xl font-black uppercase italic text-xl flex items-center justify-center gap-4">
                     <i class="fas fa-robot"></i> Coach IA
                 </button>
-                <button onclick="navigateTo('profile')" class="w-full h-20 bg-white/5 border border-white/10 rounded-2xl font-black uppercase italic text-xl flex items-center justify-center gap-4">
+                <button onclick="window.navigateTo('profile')" class="w-full h-20 bg-white/5 border border-white/10 rounded-2xl font-black uppercase italic text-xl flex items-center justify-center gap-4">
                     <i class="fas fa-user"></i> Mon Profil
                 </button>
             </div>
@@ -109,9 +119,9 @@
             <div class="neo-card p-8 rounded-[2rem] space-y-6">
                 <h3 class="font-black italic uppercase text-center border-b border-white/5 pb-4">Ajouter une Session</h3>
                 <div class="space-y-4">
-                    <input type="number" id="input-score" placeholder="Score final" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 font-bold text-center text-xl outline-none focus:border-orange-500">
-                    <input type="number" id="input-coins" placeholder="Pièces collectées" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 font-bold text-center text-xl outline-none focus:border-yellow-500">
-                    <button onclick="addSession()" class="w-full py-5 bg-orange-600 rounded-xl font-black uppercase italic text-lg shadow-lg">Sauvegarder</button>
+                    <input type="number" id="input-score" placeholder="Score final" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 font-bold text-center text-xl outline-none focus:border-orange-500 text-white">
+                    <input type="number" id="input-coins" placeholder="Pièces collectées" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 font-bold text-center text-xl outline-none focus:border-yellow-500 text-white">
+                    <button onclick="window.addSession()" class="w-full py-5 bg-orange-600 rounded-xl font-black uppercase italic text-lg shadow-lg">Sauvegarder</button>
                 </div>
             </div>
 
@@ -122,15 +132,15 @@
 
         <!-- SECTION: COACH IA -->
         <section id="page-coach" class="page-section">
-            <div class="neo-card h-[70vh] rounded-[2rem] flex flex-col overflow-hidden">
+            <div class="neo-card h-[60vh] rounded-[2rem] flex flex-col overflow-hidden">
                 <div id="chat-box" class="flex-1 p-6 overflow-y-auto space-y-4">
                     <div class="bg-white/5 p-4 rounded-2xl text-sm border border-white/10">
                         <b>SurfGPT:</b> Salut ! Prêt à exploser ton record ? Demande-moi n'importe quoi !
                     </div>
                 </div>
                 <div class="p-4 bg-black/50 border-t border-white/5 flex gap-2">
-                    <input type="text" id="chat-input" placeholder="Ton message..." class="flex-1 bg-white/5 border border-white/10 rounded-xl p-3 text-sm outline-none">
-                    <button onclick="askAI()" class="w-12 h-12 bg-orange-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <input type="text" id="chat-input" placeholder="Ton message..." class="flex-1 bg-white/5 border border-white/10 rounded-xl p-3 text-sm outline-none text-white">
+                    <button onclick="window.askAI()" class="w-12 h-12 bg-orange-600 rounded-xl flex items-center justify-center shadow-lg">
                         <i class="fas fa-paper-plane"></i>
                     </button>
                 </div>
@@ -144,11 +154,11 @@
                     <i class="fas fa-user-astronaut"></i>
                 </div>
                 <div>
-                    <h2 class="text-2xl font-black italic uppercase">Surfeur Pro</h2>
+                    <h2 class="text-2xl font-black italic uppercase text-white">Surfeur Pro</h2>
                     <div id="lvl-badge" class="mt-2 bg-orange-500/20 text-orange-500 px-4 py-1 rounded-full text-xs font-bold inline-block">LVL 1</div>
                 </div>
                 <div class="w-full h-3 bg-white/5 rounded-full overflow-hidden border border-white/5">
-                    <div id="xp-bar" class="h-full bg-orange-600 w-[10%]"></div>
+                    <div id="xp-bar" class="h-full bg-orange-600 w-[10%] transition-all duration-500"></div>
                 </div>
                 <p id="xp-text" class="text-[10px] font-black uppercase text-gray-500">10 / 100 XP</p>
             </div>
@@ -158,19 +168,19 @@
 
     <!-- NAVIGATION MOBILE (FIXÉE EN BAS) -->
     <nav class="mobile-nav fixed bottom-0 left-0 w-full flex justify-around items-center h-20 z-50">
-        <button onclick="navigateTo('home')" class="nav-item active text-center flex flex-col items-center gap-1" id="btn-home">
+        <button onclick="window.navigateTo('home')" class="nav-item active text-center flex flex-col items-center gap-1" id="btn-home">
             <i class="fas fa-home text-xl"></i>
             <span class="text-[9px] font-black uppercase">Home</span>
         </button>
-        <button onclick="navigateTo('dashboard')" class="nav-item text-center flex flex-col items-center gap-1" id="btn-dashboard">
+        <button onclick="window.navigateTo('dashboard')" class="nav-item text-center flex flex-col items-center gap-1" id="btn-dashboard">
             <i class="fas fa-chart-bar text-xl"></i>
             <span class="text-[9px] font-black uppercase">Stats</span>
         </button>
-        <button onclick="navigateTo('coach')" class="nav-item text-center flex flex-col items-center gap-1" id="btn-coach">
+        <button onclick="window.navigateTo('coach')" class="nav-item text-center flex flex-col items-center gap-1" id="btn-coach">
             <i class="fas fa-robot text-xl"></i>
             <span class="text-[9px] font-black uppercase">Coach</span>
         </button>
-        <button onclick="navigateTo('profile')" class="nav-item text-center flex flex-col items-center gap-1" id="btn-profile">
+        <button onclick="window.navigateTo('profile')" class="nav-item text-center flex flex-col items-center gap-1" id="btn-profile">
             <i class="fas fa-user text-xl"></i>
             <span class="text-[9px] font-black uppercase">Moi</span>
         </button>
@@ -192,25 +202,30 @@
         let user = null;
         let sessions = [];
 
-        // NAVIGATION
+        // NAVIGATION (Rendu global pour onclick)
         window.navigateTo = (page) => {
             document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             
-            document.getElementById('page-' + page).classList.add('active');
-            document.getElementById('btn-' + page).classList.add('active');
-            window.scrollTo(0,0);
+            const targetPage = document.getElementById('page-' + page);
+            const targetBtn = document.getElementById('btn-' + page);
+            
+            if(targetPage) targetPage.classList.add('active');
+            if(targetBtn) targetBtn.classList.add('active');
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
         // AUTH & SYNC
-        signInAnonymously(auth);
+        signInAnonymously(auth).catch(err => console.error("Auth error:", err));
+        
         onAuthStateChanged(auth, (u) => {
             if (u) {
                 user = u;
                 onSnapshot(collection(db, 'artifacts', appId, 'users', user.uid, 'runs'), (snap) => {
                     sessions = snap.docs.map(d => d.data());
                     updateUI();
-                });
+                }, (err) => console.error("Firestore error:", err));
             }
         });
 
@@ -232,25 +247,31 @@
             const list = document.getElementById('sessions-list');
             list.innerHTML = sessions.sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 5).map(s => `
                 <div class="bg-white/5 p-4 rounded-2xl flex justify-between items-center border border-white/5">
-                    <span class="font-black italic text-lg">${s.score.toLocaleString()}</span>
+                    <span class="font-black italic text-lg text-white">${s.score.toLocaleString()}</span>
                     <span class="text-yellow-500 font-bold"><i class="fas fa-coins text-xs"></i> ${s.coins}</span>
                 </div>
             `).join('');
         }
 
-        // ACTIONS
+        // ACTIONS (Rendu global pour onclick)
         window.addSession = async () => {
-            const s = document.getElementById('input-score').value;
-            const c = document.getElementById('input-coins').value;
+            if(!user) return;
+            const sInput = document.getElementById('input-score');
+            const cInput = document.getElementById('input-coins');
+            const s = sInput.value;
+            const c = cInput.value;
+            
             if(!s || !c) return;
             
-            await addDoc(collection(db, 'artifacts', appId, 'users', user.uid, 'runs'), {
-                score: parseInt(s),
-                coins: parseInt(c),
-                date: new Date().toISOString()
-            });
-            document.getElementById('input-score').value = '';
-            document.getElementById('input-coins').value = '';
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'users', user.uid, 'runs'), {
+                    score: parseInt(s),
+                    coins: parseInt(c),
+                    date: new Date().toISOString()
+                });
+                sInput.value = '';
+                cInput.value = '';
+            } catch(e) { console.error(e); }
         };
 
         window.askAI = async () => {
@@ -259,8 +280,9 @@
             if(!input.value) return;
 
             const msg = input.value;
-            box.innerHTML += `<div class="bg-orange-600/20 p-4 rounded-2xl text-sm border border-orange-500/20 text-right italic"><b>Moi:</b> ${msg}</div>`;
+            box.innerHTML += `<div class="bg-orange-600/20 p-4 rounded-2xl text-sm border border-orange-500/20 text-right italic text-white"><b>Moi:</b> ${msg}</div>`;
             input.value = '';
+            box.scrollTop = box.scrollHeight;
 
             try {
                 const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
@@ -273,9 +295,11 @@
                 });
                 const data = await res.json();
                 const reply = data.candidates[0].content.parts[0].text;
-                box.innerHTML += `<div class="bg-white/5 p-4 rounded-2xl text-sm border border-white/10"><b>SurfGPT:</b> ${reply}</div>`;
+                box.innerHTML += `<div class="bg-white/5 p-4 rounded-2xl text-sm border border-white/10 text-white"><b>SurfGPT:</b> ${reply}</div>`;
                 box.scrollTop = box.scrollHeight;
-            } catch(e) { console.error(e); }
+            } catch(e) { 
+                box.innerHTML += `<div class="text-red-500 text-xs p-2">Erreur de connexion IA</div>`;
+            }
         };
     </script>
 </body>
