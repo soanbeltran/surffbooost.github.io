@@ -121,7 +121,7 @@
                 <div class="space-y-4">
                     <input type="number" id="input-score" placeholder="Score final" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 font-bold text-center text-xl outline-none focus:border-orange-500 text-white">
                     <input type="number" id="input-coins" placeholder="Pièces collectées" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 font-bold text-center text-xl outline-none focus:border-yellow-500 text-white">
-                    <button onclick="window.addSession()" class="w-full py-5 bg-orange-600 rounded-xl font-black uppercase italic text-lg shadow-lg">Sauvegarder</button>
+                    <button id="save-btn" class="w-full py-5 bg-orange-600 rounded-xl font-black uppercase italic text-lg shadow-lg">Sauvegarder</button>
                 </div>
             </div>
 
@@ -140,7 +140,7 @@
                 </div>
                 <div class="p-4 bg-black/50 border-t border-white/5 flex gap-2">
                     <input type="text" id="chat-input" placeholder="Ton message..." class="flex-1 bg-white/5 border border-white/10 rounded-xl p-3 text-sm outline-none text-white">
-                    <button onclick="window.askAI()" class="w-12 h-12 bg-orange-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <button id="send-ai-btn" class="w-12 h-12 bg-orange-600 rounded-xl flex items-center justify-center shadow-lg">
                         <i class="fas fa-paper-plane"></i>
                     </button>
                 </div>
@@ -191,59 +191,58 @@
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
-        // Initialisation immédiate des fonctions globales pour éviter tout délai au clic
-        window.navigateTo = (page) => {
-            // Effet tactile (si supporté)
-            if (navigator.vibrate) navigator.vibrate(5);
-            
-            document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            
-            const targetPage = document.getElementById('page-' + page);
-            const targetBtn = document.getElementById('btn-' + page);
-            
-            if(targetPage) targetPage.classList.add('active');
-            if(targetBtn) targetBtn.classList.add('active');
-            
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        };
-
         // CONFIG
         const firebaseConfig = JSON.parse(window.__firebase_config || '{}');
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         const appId = window.__app_id || 'surfboots-app';
-        const apiKey = "";
+        const apiKey = ""; // La clé est injectée par l'environnement
 
         let user = null;
         let sessions = [];
 
-        // ACTIONS GLOBALES
-        window.addSession = async () => {
+        // NAVIGATION GLOBALE
+        window.navigateTo = (page) => {
+            if (navigator.vibrate) navigator.vibrate(5);
+            document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            const targetPage = document.getElementById('page-' + page);
+            const targetBtn = document.getElementById('btn-' + page);
+            if(targetPage) targetPage.classList.add('active');
+            if(targetBtn) targetBtn.classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        // SAUVEGARDE DE SESSION
+        const addSession = async () => {
             if(!user) return;
             const sInput = document.getElementById('input-score');
             const cInput = document.getElementById('input-coins');
-            const s = sInput.value;
-            const c = cInput.value;
+            const s = parseInt(sInput.value);
+            const c = parseInt(cInput.value);
             
-            if(!s || !c) return;
+            if(isNaN(s) || isNaN(c)) return;
             
             try {
                 await addDoc(collection(db, 'artifacts', appId, 'users', user.uid, 'runs'), {
-                    score: parseInt(s),
-                    coins: parseInt(c),
+                    score: s,
+                    coins: c,
                     date: new Date().toISOString()
                 });
                 sInput.value = '';
                 cInput.value = '';
-            } catch(e) { console.error(e); }
+                if (navigator.vibrate) navigator.vibrate(20);
+            } catch(e) { 
+                console.error("Save error:", e);
+            }
         };
 
-        window.askAI = async () => {
+        // CHAT AVEC L'IA
+        const askAI = async () => {
             const input = document.getElementById('chat-input');
             const box = document.getElementById('chat-box');
-            if(!input.value) return;
+            if(!input.value.trim()) return;
 
             const msg = input.value;
             box.innerHTML += `<div class="bg-orange-600/20 p-4 rounded-2xl text-sm border border-orange-500/20 text-right italic text-white"><b>Moi:</b> ${msg}</div>`;
@@ -251,35 +250,57 @@
             box.scrollTop = box.scrollHeight;
 
             try {
+                // Utilisation du modèle supporté gemini-2.5-flash-preview-09-2025
                 const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
                         contents: [{parts: [{text: msg}]}],
-                        systemInstruction: {parts: [{text: "Tu es SurfGPT, coach Subway Surfers. Réponds court."}]}
+                        systemInstruction: {parts: [{text: "Tu es SurfGPT, coach Subway Surfers expert. Réponds de façon courte, fun et encourageante en français."}]}
                     })
                 });
                 const data = await res.json();
-                const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Désolé, je bug un peu.";
+                const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Mince, ma planche a glissé. Réessaie !";
                 box.innerHTML += `<div class="bg-white/5 p-4 rounded-2xl text-sm border border-white/10 text-white"><b>SurfGPT:</b> ${reply}</div>`;
                 box.scrollTop = box.scrollHeight;
             } catch(e) { 
-                box.innerHTML += `<div class="text-red-500 text-xs p-2">Erreur de connexion IA</div>`;
+                console.error("AI error:", e);
+                box.innerHTML += `<div class="text-red-500 text-xs p-2 text-center">Erreur de connexion avec l'IA</div>`;
             }
         };
 
-        // AUTH & SYNC
-        signInAnonymously(auth).catch(err => console.error("Auth error:", err));
-        
-        onAuthStateChanged(auth, (u) => {
-            if (u) {
-                user = u;
-                onSnapshot(collection(db, 'artifacts', appId, 'users', user.uid, 'runs'), (snap) => {
-                    sessions = snap.docs.map(d => d.data());
-                    updateUI();
-                }, (err) => console.error("Firestore error:", err));
+        // ATTACHEMENT DES ÉVÉNEMENTS (Plus fiable que onclick dans un module)
+        document.addEventListener('DOMContentLoaded', () => {
+            const saveBtn = document.getElementById('save-btn');
+            const aiBtn = document.getElementById('send-ai-btn');
+            const aiInput = document.getElementById('chat-input');
+
+            if(saveBtn) saveBtn.addEventListener('click', addSession);
+            if(aiBtn) aiBtn.addEventListener('click', askAI);
+            if(aiInput) {
+                aiInput.addEventListener('keypress', (e) => {
+                    if(e.key === 'Enter') askAI();
+                });
             }
         });
+
+        // AUTH & SYNC
+        const startApp = async () => {
+            try {
+                await signInAnonymously(auth);
+                onAuthStateChanged(auth, (u) => {
+                    if (u) {
+                        user = u;
+                        onSnapshot(collection(db, 'artifacts', appId, 'users', user.uid, 'runs'), (snap) => {
+                            sessions = snap.docs.map(d => d.data());
+                            updateUI();
+                        }, (err) => console.error("Firestore error:", err));
+                    }
+                });
+            } catch(err) {
+                console.error("Auth error:", err);
+            }
+        };
 
         // UI UPDATES
         function updateUI() {
@@ -304,20 +325,15 @@
             const list = document.getElementById('sessions-list');
             if(list) {
                 list.innerHTML = sessions.sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 5).map(s => `
-                    <div class="bg-white/5 p-4 rounded-2xl flex justify-between items-center border border-white/5">
+                    <div class="bg-white/5 p-4 rounded-2xl flex justify-between items-center border border-white/5 animate-in fade-in duration-300">
                         <span class="font-black italic text-lg text-white">${s.score.toLocaleString()}</span>
                         <span class="text-yellow-500 font-bold"><i class="fas fa-coins text-xs"></i> ${s.coins}</span>
                     </div>
                 `).join('');
             }
         }
+
+        startApp();
     </script>
 </body>
 </html>
-</body>
-</html>
-    </script>
-</body>
-</html>
-
-
