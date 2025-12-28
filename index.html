@@ -202,7 +202,7 @@
         let user = null;
         let sessions = [];
 
-        // NAVIGATION (Rendu global pour onclick)
+        // NAVIGATION (Attaché à window pour être accessible globalement)
         window.navigateTo = (page) => {
             document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -216,44 +216,7 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
-        // AUTH & SYNC
-        signInAnonymously(auth).catch(err => console.error("Auth error:", err));
-        
-        onAuthStateChanged(auth, (u) => {
-            if (u) {
-                user = u;
-                onSnapshot(collection(db, 'artifacts', appId, 'users', user.uid, 'runs'), (snap) => {
-                    sessions = snap.docs.map(d => d.data());
-                    updateUI();
-                }, (err) => console.error("Firestore error:", err));
-            }
-        });
-
-        // UI UPDATES
-        function updateUI() {
-            const scores = sessions.map(s => s.score);
-            const max = scores.length ? Math.max(...scores) : 0;
-            document.getElementById('best-score').innerText = max.toLocaleString();
-
-            const totalXP = sessions.reduce((acc, s) => acc + (s.score/1000) + (s.coins/10), 0);
-            const level = Math.floor(Math.sqrt(totalXP / 10)) + 1;
-            const xpNeeded = Math.pow(level, 2) * 10;
-            const progress = (totalXP / xpNeeded) * 100;
-
-            document.getElementById('lvl-badge').innerText = `LVL ${level}`;
-            document.getElementById('xp-bar').style.width = `${Math.min(progress, 100)}%`;
-            document.getElementById('xp-text').innerText = `${Math.round(totalXP)} / ${xpNeeded} XP`;
-
-            const list = document.getElementById('sessions-list');
-            list.innerHTML = sessions.sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 5).map(s => `
-                <div class="bg-white/5 p-4 rounded-2xl flex justify-between items-center border border-white/5">
-                    <span class="font-black italic text-lg text-white">${s.score.toLocaleString()}</span>
-                    <span class="text-yellow-500 font-bold"><i class="fas fa-coins text-xs"></i> ${s.coins}</span>
-                </div>
-            `).join('');
-        }
-
-        // ACTIONS (Rendu global pour onclick)
+        // ACTIONS (Attaché à window pour être accessible globalement)
         window.addSession = async () => {
             if(!user) return;
             const sInput = document.getElementById('input-score');
@@ -301,6 +264,54 @@
                 box.innerHTML += `<div class="text-red-500 text-xs p-2">Erreur de connexion IA</div>`;
             }
         };
+
+        // AUTH & SYNC
+        signInAnonymously(auth).catch(err => console.error("Auth error:", err));
+        
+        onAuthStateChanged(auth, (u) => {
+            if (u) {
+                user = u;
+                onSnapshot(collection(db, 'artifacts', appId, 'users', user.uid, 'runs'), (snap) => {
+                    sessions = snap.docs.map(d => d.data());
+                    updateUI();
+                }, (err) => console.error("Firestore error:", err));
+            }
+        });
+
+        // UI UPDATES
+        function updateUI() {
+            const scores = sessions.map(s => s.score);
+            const max = scores.length ? Math.max(...scores) : 0;
+            const bestEl = document.getElementById('best-score');
+            if(bestEl) bestEl.innerText = max.toLocaleString();
+
+            const totalXP = sessions.reduce((acc, s) => acc + (s.score/1000) + (s.coins/10), 0);
+            const level = Math.floor(Math.sqrt(totalXP / 10)) + 1;
+            const xpNeeded = Math.pow(level, 2) * 10;
+            const progress = (totalXP / xpNeeded) * 100;
+
+            const badge = document.getElementById('lvl-badge');
+            const bar = document.getElementById('xp-bar');
+            const text = document.getElementById('xp-text');
+
+            if(badge) badge.innerText = `LVL ${level}`;
+            if(bar) bar.style.width = `${Math.min(progress, 100)}%`;
+            if(text) text.innerText = `${Math.round(totalXP)} / ${xpNeeded} XP`;
+
+            const list = document.getElementById('sessions-list');
+            if(list) {
+                list.innerHTML = sessions.sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 5).map(s => `
+                    <div class="bg-white/5 p-4 rounded-2xl flex justify-between items-center border border-white/5">
+                        <span class="font-black italic text-lg text-white">${s.score.toLocaleString()}</span>
+                        <span class="text-yellow-500 font-bold"><i class="fas fa-coins text-xs"></i> ${s.coins}</span>
+                    </div>
+                `).join('');
+            }
+        }
     </script>
 </body>
 </html>
+    </script>
+</body>
+</html>
+
