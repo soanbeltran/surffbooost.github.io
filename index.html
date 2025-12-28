@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SURFBOOTS - Dashboard Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0a0a0b;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .neo-card {
+            background: #121214;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .neo-card:hover {
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .orange-glow {
+            box-shadow: 0 10px 30px -10px rgba(249, 115, 22, 0.3);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+
+        .page-section {
+            display: none;
+        }
+
+        .page-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="selection:bg-orange-500/30">
+
+    <!-- Header Navigation -->
+    <header class="fixed top-0 w-full z-50 bg-[#0a0a0b]/80 backdrop-blur-xl border-b border-white/5 py-4 px-8 flex justify-between items-center">
+        <button onclick="showPage('home')" class="flex items-center gap-2">
+            <div class="w-8 h-8 bg-orange-600 rounded-lg flex items-center justify-center shadow-lg">
+                <i class="fas fa-bolt text-sm"></i>
+            </div>
+            <span class="text-xl font-black italic uppercase tracking-tighter">SurfBoots</span>
+        </button>
+        <nav class="flex gap-4 md:gap-6">
+            <button onclick="showPage('home')" class="nav-link text-[10px] font-black uppercase tracking-widest text-orange-500" data-page="home">Accueil</button>
+            <button onclick="showPage('dashboard')" class="nav-link text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-white" data-page="dashboard">Stats</button>
+            <button onclick="showPage('coach')" class="nav-link text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-white" data-page="coach">Coach</button>
+            <button onclick="showPage('profile')" class="nav-link text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-white" data-page="profile">Profil</button>
+        </nav>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 pt-32 pb-20">
+        
+        <!-- HOME PAGE -->
+        <section id="page-home" class="page-section active py-20 space-y-8 max-w-2xl">
+            <h1 class="text-6xl md:text-8xl font-black italic uppercase leading-none tracking-tighter">Vise le <br><span class="text-orange-600">Sommet.</span></h1>
+            <p class="text-xl text-gray-400">Le dashboard professionnel pour Subway Surfers avec sauvegarde cloud, progression par niveaux et intelligence artificielle.</p>
+            <button onclick="showPage('dashboard')" class="h-16 px-10 text-lg bg-gradient-to-r from-orange-500 to-yellow-400 text-white rounded-2xl font-bold orange-glow flex items-center gap-2 hover:scale-[1.02] transition-transform">
+                Ouvrir le Dashboard <i class="fas fa-arrow-right"></i>
+            </button>
+        </section>
+
+        <!-- DASHBOARD PAGE -->
+        <section id="page-dashboard" class="page-section space-y-8">
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="neo-card rounded-[2rem] p-6">
+                    <div class="flex items-center gap-3 mb-4 text-gray-400 uppercase text-[10px] font-black">
+                        <i class="fas fa-trophy text-orange-500"></i> Meilleur Score
+                    </div>
+                    <div id="stat-best-score" class="text-4xl font-black italic text-orange-500">0</div>
+                </div>
+                <div class="neo-card rounded-[2rem] p-6">
+                    <div class="flex items-center gap-3 mb-4 text-gray-400 uppercase text-[10px] font-black">
+                        <i class="fas fa-history text-blue-400"></i> Total Runs
+                    </div>
+                    <div id="stat-total-runs" class="text-4xl font-black italic text-blue-400">0</div>
+                </div>
+                <div class="neo-card rounded-[2rem] p-6">
+                    <div class="flex items-center gap-3 mb-4 text-gray-400 uppercase text-[10px] font-black">
+                        <i class="fas fa-star text-purple-400"></i> Points XP
+                    </div>
+                    <div id="stat-total-xp" class="text-4xl font-black italic text-purple-400">0</div>
+                </div>
+            </div>
+
+            <div class="grid lg:grid-cols-5 gap-8">
+                <div class="lg:col-span-2 neo-card rounded-[2rem] p-8">
+                    <h3 class="text-xs font-black uppercase tracking-widest text-gray-400 mb-6 flex items-center gap-2">
+                        <i class="fas fa-plus-circle text-orange-500"></i> Ajouter Session
+                    </h3>
+                    <div class="space-y-4">
+                        <input type="number" id="input-score" placeholder="Score Final" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 outline-none focus:border-orange-500 transition-colors">
+                        <input type="number" id="input-coins" placeholder="Pièces collectées" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 outline-none focus:border-yellow-500 transition-colors">
+                        <button onclick="handle_addRun()" class="w-full h-14 bg-gradient-to-r from-orange-500 to-yellow-400 rounded-xl font-bold uppercase tracking-widest">Synchroniser au Cloud</button>
+                    </div>
+                </div>
+                <div class="lg:col-span-3 neo-card rounded-[2rem] p-8">
+                    <h3 class="text-xs font-black uppercase tracking-widest text-gray-400 mb-6 flex items-center gap-2">
+                        <i class="fas fa-list text-orange-500"></i> Historique Persistant
+                    </h3>
+                    <div id="runs-list" class="space-y-3 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
+                        <!-- Les runs s'afficheront ici -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- COACH PAGE -->
+        <section id="page-coach" class="page-section max-w-4xl mx-auto">
+            <div class="neo-card rounded-[2rem] flex flex-col h-[550px] overflow-hidden">
+                <div class="p-6 border-b border-white/5 flex items-center justify-between">
+                    <h3 class="text-xs font-black uppercase tracking-widest text-gray-400 flex items-center gap-2">
+                        <i class="fas fa-brain text-purple-500"></i> Coach IA Stratégie
+                    </h3>
+                </div>
+                <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
+                    <div class="flex justify-start">
+                        <div class="bg-white/5 border border-white/5 p-4 rounded-2xl max-w-[80%] text-sm">
+                            Salut ! Je suis SurfGPT. Prêt à briser des records ?
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 bg-black/20 flex gap-2">
+                    <input type="text" id="chat-input" placeholder="Pose une question au coach..." class="flex-1 bg-transparent border-none outline-none px-2 text-sm">
+                    <button onclick="handle_sendMessage()" class="bg-gradient-to-r from-purple-600 to-blue-500 p-3 rounded-xl hover:scale-105 transition-transform">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- PROFILE PAGE -->
+        <section id="page-profile" class="page-section max-w-4xl mx-auto space-y-8">
+            <div class="flex flex-col items-center text-center space-y-4">
+                <div class="w-32 h-32 rounded-full bg-gradient-to-br from-orange-500 to-purple-600 p-1">
+                    <div class="w-full h-full rounded-full bg-[#0a0a0b] flex items-center justify-center">
+                        <i class="fas fa-user text-4xl"></i>
+                    </div>
+                </div>
+                <h2 class="text-2xl font-black italic uppercase">Profil Surfeur</h2>
+                <p id="user-id-display" class="text-xs text-gray-500 font-mono">ID Compte : Chargement...</p>
+            </div>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="neo-card p-6 rounded-[2rem]">
+                    <h3 class="text-xs font-black uppercase tracking-widest text-gray-400 mb-4">Sécurité Cloud</h3>
+                    <p class="text-sm text-gray-400 italic">Données synchronisées via Firebase.</p>
+                </div>
+                <div class="neo-card p-6 rounded-[2rem]">
+                    <h3 class="text-xs font-black uppercase tracking-widest text-gray-400 mb-4">Progression</h3>
+                    <div class="flex justify-between items-end mb-2">
+                        <p id="display-level" class="text-3xl font-black italic text-orange-500">LVL 1</p>
+                        <p id="display-xp" class="text-xs text-gray-500">0 XP Total</p>
+                    </div>
+                    <div class="w-full bg-white/5 h-2 rounded-full overflow-hidden">
+                        <div id="level-progress-bar" class="bg-orange-500 h-full w-0 transition-all duration-1000"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+
+        // CONFIGURATION
+        const firebaseConfig = JSON.parse(window.__firebase_config || '{}');
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = window.__app_id || 'surfboots-app';
+        const apiKey = ""; // API Key de l'environnement
+
+        let currentUser = null;
+        let userRuns = [];
+
+        // AUTHENTICATION
+        signInAnonymously(auth).catch(console.error);
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('user-id-display').innerText = `ID Compte : ${user.uid}`;
+                initDataListener();
+            }
+        });
+
+        // DATA LISTENER
+        function initDataListener() {
+            const runsRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'runs');
+            onSnapshot(runsRef, (snapshot) => {
+                userRuns = snapshot.docs.map(doc => doc.data());
+                updateUI();
+            });
+        }
+
+        // UPDATE UI
+        function updateUI() {
+            // Stats
+            const bestScore = userRuns.length > 0 ? Math.max(...userRuns.map(r => r.score)) : 0;
+            const totalRuns = userRuns.length;
+            const xpData = calculateLevel(userRuns);
+
+            document.getElementById('stat-best-score').innerText = bestScore.toLocaleString();
+            document.getElementById('stat-total-runs').innerText = totalRuns;
+            document.getElementById('stat-total-xp').innerText = xpData.totalXP;
+            document.getElementById('display-level').innerText = `LVL ${xpData.level}`;
+            document.getElementById('display-xp').innerText = `${xpData.totalXP} XP Total`;
+            document.getElementById('level-progress-bar').style.width = `${xpData.progress}%`;
+
+            // List
+            const list = document.getElementById('runs-list');
+            list.innerHTML = userRuns.length === 0 ? '<p class="text-center py-20 text-gray-600 italic">Aucun run enregistré.</p>' : '';
+            
+            userRuns.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(run => {
+                const div = document.createElement('div');
+                div.className = "flex justify-between p-4 bg-white/5 rounded-2xl border border-white/5";
+                div.innerHTML = `
+                    <div>
+                        <div class="font-black text-xl">${run.score.toLocaleString()}</div>
+                        <div class="text-[10px] text-gray-500 uppercase font-bold">${new Date(run.date).toLocaleDateString()}</div>
+                    </div>
+                    <div class="text-yellow-500 font-black flex items-center gap-1"><i class="fas fa-bolt text-xs"></i> ${run.coins}</div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        // LOGIC FUNCTIONS
+        function calculateLevel(runs) {
+            const totalXP = runs.reduce((acc, run) => acc + (run.score / 100) + (run.coins * 2), 0);
+            const level = Math.floor(Math.sqrt(totalXP / 100)) + 1;
+            const nextLevelXP = Math.pow(level, 2) * 100;
+            const currentLevelXP = Math.pow(level - 1, 2) * 100;
+            const progress = ((totalXP - currentLevelXP) / (nextLevelXP - currentLevelXP)) * 100;
+            return { level, progress, totalXP: Math.round(totalXP) };
+        }
+
+        // ACTIONS GLOBALES
+        window.handle_addRun = async () => {
+            const s = document.getElementById('input-score').value;
+            const c = document.getElementById('input-coins').value;
+            if(!s || !c || !currentUser) return;
+
+            await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'runs'), {
+                score: parseInt(s),
+                coins: parseInt(c),
+                date: new Date().toISOString()
+            });
+            
+            document.getElementById('input-score').value = '';
+            document.getElementById('input-coins').value = '';
+        };
+
+        window.handle_sendMessage = async () => {
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if(!text) return;
+
+            appendMessage('user', text);
+            input.value = '';
+
+            const context = userRuns.slice(0,5).map(r => `S:${r.score}, C:${r.coins}`).join('|');
+            const prompt = `Tu es SurfGPT, coach Subway Surfers. Réponds en français. Stats: ${context}. Question: ${text}`;
+
+            try {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ contents: [{parts:[{text: prompt}]}] })
+                });
+                const data = await res.json();
+                const responseText = data.candidates[0].content.parts[0].text;
+                appendMessage('ai', responseText);
+                speak(responseText);
+            } catch (e) {
+                appendMessage('ai', "Oups, ma connexion a sauté !");
+            }
+        };
+
+        function appendMessage(role, text) {
+            const chat = document.getElementById('chat-messages');
+            const div = document.createElement('div');
+            div.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'}`;
+            div.innerHTML = `<div class="${role === 'user' ? 'bg-orange-600' : 'bg-white/5 border border-white/5'} p-4 rounded-2xl max-w-[80%] text-sm">${text}</div>`;
+            chat.appendChild(div);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function speak(text) {
+            const speech = new SpeechSynthesisUtterance(text);
+            speech.lang = 'fr-FR';
+            window.speechSynthesis.speak(speech);
+        }
+
+        // ROUTING
+        window.showPage = (pageId) => {
+            document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+            document.getElementById(`page-${pageId}`).classList.add('active');
+            
+            document.querySelectorAll('.nav-link').forEach(l => {
+                if(l.dataset.page === pageId) {
+                    l.classList.remove('text-gray-500');
+                    l.classList.add('text-orange-500');
+                } else {
+                    l.classList.add('text-gray-500');
+                    l.classList.remove('text-orange-500');
+                }
+            });
+        };
+    </script>
+</body>
+</html>
