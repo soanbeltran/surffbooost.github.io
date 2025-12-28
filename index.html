@@ -73,7 +73,6 @@
 
         button:active { transform: scale(0.96); }
 
-        /* Scrollbar personnalisée pour le chat */
         #chat-box::-webkit-scrollbar { width: 4px; }
         #chat-box::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
     </style>
@@ -89,7 +88,7 @@
             <span class="text-xl font-black italic uppercase tracking-tighter">SurfBoots</span>
         </div>
         <div id="status-indicator" class="text-[10px] font-bold text-gray-500 uppercase flex items-center gap-2 bg-white/5 px-3 py-1 rounded-full border border-white/10">
-            <div id="status-dot" class="w-1.5 h-1.5 bg-gray-500 rounded-full"></div> <span id="status-text">Hors-ligne</span>
+            <div id="status-dot" class="w-1.5 h-1.5 bg-gray-500 rounded-full"></div> <span id="status-text">Initialisation...</span>
         </div>
     </header>
 
@@ -145,7 +144,6 @@
             <div class="space-y-4">
                 <h4 class="text-[10px] font-black uppercase text-gray-500 px-2 tracking-widest">Dernières Activités</h4>
                 <div id="sessions-list" class="space-y-3 pb-10">
-                    <!-- Sessions injectées ici -->
                 </div>
             </div>
         </section>
@@ -197,7 +195,7 @@
                     </div>
                     <div class="bg-white/5 p-4 rounded-2xl border border-white/5">
                         <div class="text-[9px] uppercase font-black text-gray-500">Statut</div>
-                        <div class="text-[10px] font-black text-green-500 mt-1 uppercase">Vérifié</div>
+                        <div id="auth-status-label" class="text-[10px] font-black text-gray-500 mt-1 uppercase">Attente</div>
                     </div>
                 </div>
             </div>
@@ -225,28 +223,34 @@
         </button>
     </nav>
 
-    <!-- FIREBASE & LOGIQUE APP -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, limit } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
-        // Initialisation Firebase
-        const firebaseConfig = JSON.parse(window.__firebase_config || '{}');
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const appId = window.__app_id || 'surfboots-github';
-        const apiKey = ""; // Géré par l'environnement
+        // CONFIGURATION FALLBACKS (Important pour GitHub Pages)
+        let firebaseConfig = {};
+        try {
+            firebaseConfig = JSON.parse(window.__firebase_config || '{}');
+        } catch (e) {
+            console.warn("Firebase config non trouvée, l'app tournera en mode dégradé.");
+        }
 
+        const appId = window.__app_id || 'surfboots-default';
+        const apiKey = ""; // Rempli automatiquement par l'environnement Canvas
+
+        // INITIALISATION
+        let app, auth, db;
         let currentUser = null;
         let sessionsData = [];
 
-        // NAVIGATION
+        if (firebaseConfig.apiKey) {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+        }
+
         const switchPage = (targetId) => {
-            if (navigator.vibrate) navigator.vibrate(5);
-            
-            // UI
             document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             
@@ -255,18 +259,18 @@
             
             if(targetPage) targetPage.classList.add('active');
             targetBtns.forEach(b => b.classList.add('active'));
-            
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
-        // GESTION DES CLICS NAVIGATION
         document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.addEventListener('click', () => switchPage(btn.getAttribute('data-target')));
         });
 
-        // SAUVEGARDE RUN
         const handleSave = async () => {
-            if(!currentUser) return;
+            if(!currentUser || !db) {
+                alert("Connexion Cloud indisponible.");
+                return;
+            }
             const sInput = document.getElementById('input-score');
             const cInput = document.getElementById('input-coins');
             const score = parseInt(sInput.value);
@@ -290,30 +294,22 @@
                 saveBtn.disabled = false;
                 saveBtn.innerHTML = '<i class="fas fa-check text-green-500"></i> Succès';
                 setTimeout(() => saveBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Synchroniser', 2000);
-                
-                if (navigator.vibrate) navigator.vibrate(30);
             } catch(e) {
-                console.error("Erreur de sauvegarde:", e);
-                alert("Erreur Cloud. Réessaie.");
+                console.error(e);
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = 'Erreur';
             }
         };
 
         document.getElementById('save-btn').addEventListener('click', handleSave);
 
-        // CHAT IA
         const handleChat = async () => {
             const input = document.getElementById('chat-input');
             const box = document.getElementById('chat-box');
             const val = input.value.trim();
             if(!val) return;
 
-            // Message User
-            box.innerHTML += `
-                <div class="flex justify-end animate-in slide-in-from-right-2 duration-300">
-                    <div class="bg-orange-600 p-4 rounded-2xl text-sm border border-orange-500/20 max-w-[85%] text-white">
-                        ${val}
-                    </div>
-                </div>`;
+            box.innerHTML += `<div class="flex justify-end"><div class="bg-orange-600 p-4 rounded-2xl text-sm max-w-[85%] text-white">${val}</div></div>`;
             input.value = '';
             box.scrollTop = box.scrollHeight;
 
@@ -327,29 +323,21 @@
                     })
                 });
                 const data = await res.json();
-                const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Erreur de connexion avec le coach.";
+                const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Erreur IA.";
 
-                box.innerHTML += `
-                    <div class="flex justify-start animate-in slide-in-from-left-2 duration-300">
-                        <div class="bg-white/5 p-4 rounded-2xl text-sm border border-white/10 max-w-[85%]">
-                            <b class="text-orange-500 block mb-1">SurfGPT</b>
-                            ${reply}
-                        </div>
-                    </div>`;
+                box.innerHTML += `<div class="flex justify-start"><div class="bg-white/5 p-4 rounded-2xl text-sm border border-white/10 max-w-[85%]"><b class="text-orange-500 block mb-1">SurfGPT</b>${reply}</div></div>`;
                 box.scrollTop = box.scrollHeight;
             } catch(e) {
-                console.error("AI Error:", e);
+                console.error(e);
             }
         };
 
         document.getElementById('send-ai-btn').addEventListener('click', handleChat);
         document.getElementById('chat-input').addEventListener('keypress', (e) => { if(e.key === 'Enter') handleChat(); });
 
-        // MISE À JOUR DE L'UI
         const refreshUI = () => {
             if(!sessionsData.length) return;
 
-            // Score & XP
             const scores = sessionsData.map(s => s.score);
             const max = Math.max(...scores);
             document.getElementById('best-score').innerText = max.toLocaleString();
@@ -363,26 +351,23 @@
             document.getElementById('xp-bar').style.width = `${Math.min(progress, 100)}%`;
             document.getElementById('xp-text').innerText = `${Math.round(totalXP)} / ${xpForNext} XP`;
 
-            // Liste
             const list = document.getElementById('sessions-list');
             list.innerHTML = sessionsData.sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 10).map(s => `
-                <div class="neo-card p-4 rounded-2xl flex justify-between items-center animate-in fade-in duration-500">
+                <div class="neo-card p-4 rounded-2xl flex justify-between items-center">
                     <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-orange-500">
-                            <i class="fas fa-bolt"></i>
-                        </div>
-                        <div>
-                            <div class="font-black italic text-lg">${s.score.toLocaleString()}</div>
-                            <div class="text-[9px] uppercase font-bold text-gray-500">${new Date(s.date).toLocaleDateString()}</div>
-                        </div>
+                        <div class="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-orange-500"><i class="fas fa-bolt"></i></div>
+                        <div><div class="font-black italic text-lg">${s.score.toLocaleString()}</div><div class="text-[9px] uppercase font-bold text-gray-500">${new Date(s.date).toLocaleDateString()}</div></div>
                     </div>
                     <div class="text-yellow-500 font-black text-sm"><i class="fas fa-coins text-xs mr-1"></i>${s.coins}</div>
                 </div>
             `).join('');
         };
 
-        // AUTHENTIFICATION & ÉCOUTEURS CLOUD
         const init = async () => {
+            if (!auth) {
+                document.getElementById('status-text').innerText = "Mode Démo";
+                return;
+            }
             try {
                 await signInAnonymously(auth);
                 onAuthStateChanged(auth, (user) => {
@@ -392,21 +377,23 @@
                         document.getElementById('status-dot').className = "w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse";
                         document.getElementById('status-text').innerText = "Connecté";
                         document.getElementById('status-text').className = "text-green-500";
+                        document.getElementById('auth-status-label').innerText = "Vérifié";
+                        document.getElementById('auth-status-label').className = "text-[10px] font-black text-green-500 mt-1 uppercase";
 
-                        // Écoute en temps réel des données
                         const runsRef = collection(db, 'artifacts', appId, 'users', user.uid, 'runs');
                         onSnapshot(runsRef, (snap) => {
                             sessionsData = snap.docs.map(d => d.data());
                             refreshUI();
-                        });
+                        }, (err) => console.error("Snapshot error:", err));
                     }
                 });
             } catch(e) {
                 console.error("Auth Fail:", e);
+                document.getElementById('status-text').innerText = "Erreur Connexion";
             }
         };
 
-        init();
+        window.addEventListener('load', init);
     </script>
 </body>
 </html>
